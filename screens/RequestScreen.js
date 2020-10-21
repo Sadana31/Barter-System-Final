@@ -13,7 +13,6 @@ export default class RequestScreen extends React.Component {
             userID: firebase.auth().currentUser.email,
             itemName: "",
             reasonToRequest: '',
-            userName: ''
         }
     }
 
@@ -38,7 +37,6 @@ export default class RequestScreen extends React.Component {
             "item_name":itemName,
             "reason_to_request":reasonToRequest,
             "request_id"  : randomRequestId,
-            "userName": this.state.userName,
         })
     
         this.setState({

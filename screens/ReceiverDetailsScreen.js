@@ -18,12 +18,23 @@ export default class ReceiverDetailsScreen extends React.Component {
             receiverContact: "",
             receiverAddress: "",
             receiverRequestDocId: "",
-            userName: this.props.navigation.getParam("details")["firstName"]
+            userName: ""
         }
     }
 
-    getReceiverDetails=()=>{
-        db.collection("users").where("emailId","==",this.state.userId).get()
+    getDonorDetails=(userId)=>{
+        db.collection("users").where("emailID","==", userId).get()
+        .then((snapshot)=>{
+          snapshot.forEach((doc) => {
+            this.setState({
+              "userName" : doc.data().firstName + " " + doc.data().lastName
+            })
+          });
+        })
+      }
+
+    getReceiverDetails(){
+        db.collection("users").where("emailID","==",this.state.receiverId).get()
         .then(snapshot=>{
             snapshot.forEach(doc=>{
                 this.setState({
@@ -42,7 +53,8 @@ export default class ReceiverDetailsScreen extends React.Component {
     }
 
     componentDidMount(){
-        this.getReceiverDetails();
+        this.getReceiverDetails();        
+        this.getDonorDetails(this.state.userId);
     }
 
     updateItemStatus=()=>{
@@ -56,16 +68,17 @@ export default class ReceiverDetailsScreen extends React.Component {
     }
 
     addNotification=()=>{
-        var message = this.state.receiverName + " has shown interest in donating the item";
+        var message = this.state.userName + " has shown interest in donating the item"
         db.collection("all_notifications").add({
-            "donor_id": this.state.userId,
-            "request_id": this.state.requestId,
-            "item_name": this.state.itemName,
-            "date": firebase.firestore.FieldValue.serverTimestamp(),
-            "notification_status": "unread",
-            "message": message
+          "targeted_user_id"    : this.state.receiverId,
+          "donor_id"            : this.state.userId,
+          "request_id"          : this.state.requestId,
+          "item_name"           : this.state.itemName,
+          "date"                : firebase.firestore.FieldValue.serverTimestamp(),
+          "notification_status" : "unread",
+          "message"             : message
         })
-    }
+      }
 
     render(){
         return (
@@ -110,7 +123,7 @@ export default class ReceiverDetailsScreen extends React.Component {
                             <Text style={{fontWeight: "bold"}}>CONTACT: {this.state.receiverContact}</Text>
                         </Card>
                         <Card>
-                            <Text style={{fontWeight: "bold"}}>ADDRESS: {this.state.address}</Text>
+                            <Text style={{fontWeight: "bold"}}>ADDRESS: {this.state.receiverAddress}</Text>
                         </Card>
                 </View>
 
@@ -120,9 +133,9 @@ export default class ReceiverDetailsScreen extends React.Component {
                         ? (
                             <TouchableOpacity style={styles.button}
                             onPress={()=>{
-                            this.updateItemStatus();
-                            this.addNotification();
-                            //this.props.navigation.navigate("MyDonations");
+                            this.updateItemStatus()
+                            this.addNotification()
+                            this.props.navigation.navigate("MyBarters")
                             }}>
                                 <Text style={{fontWeight: "bold", color: "white", textAlign: "center"}}>
                                     I WANT TO DONATE THIS
