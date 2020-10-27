@@ -21,8 +21,8 @@ export default class SwipeableFlatList extends Component{
 
 
     updateMarkAsread =(notification)=>{
-       db.collection("all_notifications").doc(notification.doc_id).update({
-        "notification_status" : "read"
+       db.collection("allNotifications").doc(notification.docID).update({
+        "notificationStatus" : "read"
        })
     }  
 
@@ -42,8 +42,8 @@ export default class SwipeableFlatList extends Component{
     renderItem = data => (
         <Animated.View>
           <ListItem
-            leftElement={<Icon name="book" type="font-awesome" color ='#696969'/>}
-            title={data.item.book_name}
+            leftElement={<Icon name="item" type="font-awesome" color ='#696969'/>}
+            title={data.item.itemName}
             titleStyle={{ color: 'black', fontWeight: 'bold' }}
             subtitle={data.item.message}
             bottomDivider

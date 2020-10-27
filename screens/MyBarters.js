@@ -13,6 +13,7 @@ import {Card,ListItem,Icon} from 'react-native-elements';
 import MyHeader from '../components/MyHeader';
 import db from '../config';
 import firebase from 'firebase';
+import {RFValue} from 'react-native-responsive-fontsize';
 
 export default class MyBarters extends Component {
     static navigationOptions = {header: null}
@@ -39,12 +40,12 @@ export default class MyBarters extends Component {
     }
 
     getAllDonations =()=>{
-      this.requestRef = db.collection("all_donations").where("donor_id" ,'==', this.state.donorId)
+      this.requestRef = db.collection("allBarters").where("donorID" ,'==', this.state.donorId)
       .onSnapshot((snapshot)=>{
         var allDonations = []
         snapshot.docs.map((doc) =>{
           var donation = doc.data()
-          donation["doc_id"] = doc.id
+          donation["docID"] = doc.id
           allDonations.push(donation)
         });
         this.setState({
@@ -55,30 +56,30 @@ export default class MyBarters extends Component {
  
 
     sendItem=(itemDetails)=>{
-      if(itemDetails.request_status === "Item Sent"){
+      if(itemDetails.requestStatus === "Item Sent"){
         console.log(itemDetails)
         var requestStatus = "Donor Interested"
-        db.collection("all_donations").doc(itemDetails.doc_id).update({
-          "request_status" : "Donor Interested"
+        db.collection("allBarters").doc(itemDetails.docID).update({
+          "requestStatus" : "Donor Interested"
         })
         this.sendNotification(itemDetails,requestStatus)
       }
       else{
         console.log(itemDetails)
         var requestStatus = "Item Sent"
-        db.collection("all_donations").doc(itemDetails.doc_id).update({
-          "request_status" : "Item Sent"
+        db.collection("allBarters").doc(itemDetails.docID).update({
+          "requestStatus" : "Item Sent"
         })
         this.sendNotification(itemDetails,requestStatus)
       }
     }
 
     sendNotification=(itemDetails,requestStatus)=>{
-      var requestId = itemDetails.request_id
-      var donorId = itemDetails.donor_id
-      db.collection("all_notifications")
-      .where("request_id","==", requestId)
-      .where("donor_id","==",donorId)
+      var requestId = itemDetails.requestID
+      var donorId = itemDetails.donorID
+      db.collection("allNotifications")
+      .where("requestID","==", requestId)
+      .where("donorID","==",donorId)
       .get()
       .then((snapshot)=>{
         snapshot.forEach((doc) => {
@@ -88,9 +89,9 @@ export default class MyBarters extends Component {
           }else{
              message =  this.state.donorName  + " has shown interest in donating the item"
           }
-          db.collection("all_notifications").doc(doc.id).update({
+          db.collection("allNotifications").doc(doc.id).update({
             "message": message,
-            "notification_status" : "unread",
+            "notificationStatus" : "unread",
             "date"                : firebase.firestore.FieldValue.serverTimestamp()
           })
         });
@@ -111,8 +112,8 @@ export default class MyBarters extends Component {
     renderItem=({item,i})=>(
         <ListItem 
         key={i}
-        title={item.item_name}
-        subtitle = {"Requested by: " + item.requested_by + "\nStatus:" + item.request_status}
+        title={item.itemName}
+        subtitle = {"Requested by: " + item.requestedBy + "\nStatus:" + item.requestStatus}
         leftElement={<Icon icon name="list" color="#696969"
         titleStyle={{color: "black", fontWeight: "bold"}}/>}
         rightElement={
@@ -120,7 +121,7 @@ export default class MyBarters extends Component {
           style={[
             styles.button,
             {
-              backgroundColor : item.request_status === "Item Sent" ? "green" : "#ff5722"
+              backgroundColor : item.requestStatus === "Item Sent" ? "green" : "#ff5722"
             }
           ]}
           onPress = {()=>{
@@ -128,7 +129,7 @@ export default class MyBarters extends Component {
           }}
          >
            <Text style={{color:'#ffff'}}>{
-             item.request_status === "Item Sent" ? "Item Sent" : "Send item"
+             item.requestStatus === "Item Sent" ? "Item Sent" : "Send item"
            }</Text>
          </TouchableOpacity>
         }
@@ -144,7 +145,7 @@ export default class MyBarters extends Component {
                 this.state.allDonations.length === 0
                 ?(
                   <View style={styles.subtitle}>
-                    <Text style={{ fontSize: 20}}>List of all item Donations</Text>
+                    <Text style={{ fontSize: RFValue(20)}}>List of all item Donations</Text>
                   </View>
                 )
                 :(
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   },
   subtitle :{
     flex:1,
-    fontSize: 20,
+    fontSize: RFValue(20),
     justifyContent:'center',
     alignItems:'center'
   }

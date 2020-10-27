@@ -4,6 +4,7 @@ import {Text,View, TextInput, TouchableOpacity, StyleSheet,
 ScrollView, Modal} from 'react-native';
 import db from '../config';
 import firebase from 'firebase';
+import {RFValue} from 'react-native-responsive-fontsize';
 import {Header} from 'react-native-elements';
 
 export default class SignUpLoginScreen extends React.Component {
@@ -208,7 +209,7 @@ export default class SignUpLoginScreen extends React.Component {
                     backgroundColor={'#0000cc'}
                     centerComponent={{
                         text: 'BARTER SYSTEM',
-                        style: { color: '#fff', fontSize: 25, fontWeight: "bold"},
+                        style: { color: '#fff', fontSize: RFValue(25), fontWeight: "bold"},
                     }}
                 />
 
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 10,
         borderColor : '#000066',
-        fontSize: 20,
+        fontSize: RFValue(20),
         margin:15,
         paddingLeft:10,
         alignSelf: "center",
@@ -296,7 +297,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: RFValue(18),
         textAlign: 'center',
         marginTop: 7,
         fontWeight: 'bold',
@@ -306,14 +307,14 @@ const styles = StyleSheet.create({
         color: "darkblue",
         fontWeight: "bold",
         textAlign: 'center',
-        fontSize: 20,
+        fontSize: RFValue(20),
         marginTop: 20,
     },
     info1: {
         color: "darkblue",
         fontWeight: "bold",
         textAlign: 'center',
-        fontSize: 25,
+        fontSize: RFValue(25),
         marginTop: 8
     },
     formTextInput:{

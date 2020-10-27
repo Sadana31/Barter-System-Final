@@ -1,130 +1,275 @@
-import * as React from 'react';
-import {Text, View, StyleSheet, TextInput, 
-TouchableOpacity,KeyboardAvoidingView, Alert} from 'react-native';
+import React,{Component} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  KeyboardAvoidingView,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  TouchableHighlight,
+  Alert,Image} from 'react-native';
 import db from '../config';
-import MyHeader from '../components/MyHeader';
 import firebase from 'firebase';
+import {RFValue} from 'react-native-responsive-fontsize';
+import MyHeader from '../components/MyHeader'
+import {SearchBar,ListItem} from 'react-native-elements'
 
-export default class RequestScreen extends React.Component {
-
-    constructor(){
-        super();
-        this.state = {
-            userID: firebase.auth().currentUser.email,
-            itemName: "",
-            reasonToRequest: '',
-        }
+export default class RequestScreen extends Component{
+  constructor(){
+    super();
+    this.state ={
+      userID : firebase.auth().currentUser.email,
+      itemName:"",
+      reasonToRequest:"",
+      isItemRequestActive : "",
+      requesteditemName: "",
+      itemStatus:"",
+      requestID:"",
+      userdocID: '',
+      docID :'',
+      Imagelink: '',
+      dataSource:"",
+      showFlatlist: false
     }
+  }
 
-    createUniqueId(){
-        return Math.random().toString(36).substring(7);
-    }
-    
-    
-      addRequest =(itemName,reasonToRequest)=>{
-        var userId = this.state.userID;
-        var randomRequestId = this.createUniqueId();
+  createUniqueId(){
+    return Math.random().toString(36).substring(7);
+  }
 
-        db.collection("users").where("emailId","==",this.state.userID).get()
-        .then(data=>{
-            data.forEach(doc=>{
-                this.setState({userName: doc.data().firstName})
-            })
-        })
+  addRequest = async (itemName,reasonToRequest)=>{
+    var userID = this.state.userID
+    var randomrequestID = this.createUniqueId()
+    db.collection('requestedItems').add({
+        "userID": userID,
+        "itemName":itemName,
+        "reasonToRequest":reasonToRequest,
+        "requestID"  : randomrequestID,
+        "itemStatus" : "requested",
+         "date"       : firebase.firestore.FieldValue.serverTimestamp(),
+    })
 
-        db.collection('requested_items').add({
-            "user_id": userId,
-            "item_name":itemName,
-            "reason_to_request":reasonToRequest,
-            "request_id"  : randomRequestId,
-        })
-    
+    await  this.getitemRequest();
+    db.collection('users').where("emailID","==",userID).get()
+    .then()
+    .then((snapshot)=>{
+      snapshot.forEach((doc)=>{
+        db.collection('users').doc(doc.id).update({
+            isItemRequestActive: true
+      })
+    })
+  })
+
+    this.setState({
+        itemName :'',
+        reasonToRequest : '',
+        requestID: randomrequestID
+    })
+
+    return Alert.alert("item Requested Successfully")
+  }
+
+receiveditems=(itemName)=>{
+  var userID = this.state.userID
+  var requestID = this.state.requestID
+  db.collection('receivedItems').add({
+      "userID": userID,
+      "itemName":itemName,
+      "requestID"  : requestID,
+      "itemStatus"  : "received",
+
+  })
+}
+
+getRequestStatus(){
+  db.collection('users').where('emailID','==',this.state.userID)
+  .onSnapshot(querySnapshot => {
+    querySnapshot.forEach(doc => {
+      this.setState({
+        isItemRequestActive:doc.data().isItemRequestActive,
+        userdocID : doc.id
+      })
+    })
+  })
+}
+
+getitemRequest =()=>{
+var itemRequest=  db.collection('requestedItems').where('userID','==',this.state.userID)
+  .get().then((snapshot)=>{
+    snapshot.forEach((doc)=>{
+      if(doc.data().itemStatus !== "received"){
         this.setState({
-            itemName :'',
-            reasonToRequest : ''
+          requestID : doc.data().requestID,
+          requesteditemName: doc.data().itemName,
+          itemStatus:doc.data().itemStatus,
+          docID     : doc.id
         })
-    
-        return Alert.alert("Your Item has been requested successfully!!")
       }
+    })
+})}
 
-    render(){
-        return (
-            <View style={{flex: 1}}>
-                <MyHeader title="REQUEST  AN  ITEM" navigation ={this.props.navigation}/>
+sendNotification=()=>{
+  db.collection('users').where('emailID','==',this.state.userID).get()
+  .then((snapshot)=>{
+    snapshot.forEach((doc)=>{
+      var name = doc.data().firstName
+      var lastName = doc.data().lastName
 
-                <KeyboardAvoidingView behavior="margin" enabled style={styles.keyBoardStyle}>
-                    <TextInput style={styles.inputBox}
-                    onChangeText={(text)=>{
-                        this.setState({itemName: text});
-                    }}
-                    value = {this.state.itemName}
-                    placeholder="Enter name of the item here" 
-                    />
+      db.collection('allNotifications').where('requestID','==',this.state.requestID).get()
+      .then((snapshot)=>{
+        snapshot.forEach((doc) => {
+          var donorID  = doc.data().donorID
+          var itemName =  doc.data().itemName
 
-                    <TextInput
-                        style ={[styles.inputBox,{height:300, marginBottom: 50}]}
-                        multiline = {true}
-                        placeholder={"Why do you need the item??"}
-                        onChangeText ={(text)=>{
-                            this.setState({
-                                reasonToRequest:text
-                            })
-                        }}
-                        value ={this.state.reasonToRequest}
-                    />
+          db.collection('allNotifications').add({
+            "receiverID" : donorID,
+            "message" : name +" " + lastName + " received the item " + itemName ,
+            "notificationStatus" : "unread",
+            "itemName" : itemName
+          })
+        })
+      })
+    })
+  })
+}
 
-                    <TouchableOpacity 
-                        style={styles.button}
-                        onPress={()=>{
-                            if(this.state.itemName===""){
-                                Alert.alert("Please enter the name of the item");
-                            }
-                    
-                            else if(this.state.reasonToRequest==""){
-                                Alert.alert("Please enter the reason to request");
-                            }
-                            else {
-                                this.addRequest(this.state.itemName,this.state.reasonToRequest);
-                            }
-                        }}>
-                        <Text style={{fontWeight: "bold", color: "white", fontSize: 18}}>REQUEST  </Text>
-                    </TouchableOpacity>
-                </KeyboardAvoidingView>
-            </View>
-        )
+componentDidMount(){
+  this.getitemRequest()
+  this.getRequestStatus()
+
+
+}
+
+updateitemRequestStatus=()=>{
+
+  db.collection('requestedItems').doc(this.state.docID)
+  .update({
+    itemStatus : 'received'
+  })
+
+  db.collection('users').where('emailID','==',this.state.userID).get()
+  .then((snapshot)=>{
+    snapshot.forEach((doc) => {
+      db.collection('users').doc(doc.id).update({
+        isItemRequestActive: false
+      })
+    })
+  })
+}
+
+ render(){
+    if(this.state.isItemRequestActive === true){
+      return(
+        <View style = {{flex:1,justifyContent:'center'}}>
+          <View 
+          style={styles.view}>
+          <Text>Item Name</Text>
+          <Text>{this.state.requesteditemName}</Text>
+          </View>
+          <View style={styles.view}>
+          <Text>Item Status </Text>
+
+          <Text>{this.state.itemStatus}</Text>
+          </View>
+
+          <TouchableOpacity style={styles.button}
+          onPress={()=>{
+            this.sendNotification()
+            this.updateitemRequestStatus();
+            this.receiveditems(this.state.requesteditemName)
+          }}>
+          <Text>I received the item </Text>
+          </TouchableOpacity>
+        </View>
+      )
     }
+    else
+    {
+    return(
+        <View style={{flex:1}}>
+          <MyHeader title="Request an Item" navigation ={this.props.navigation}/>
+
+          <TextInput
+            style ={styles.formTextInput}
+            placeholder={"enter item name"}
+            onChangeText={text => this.getitemsFromApi(text)}
+            onClear={text => this.getitemsFromApi('')}
+            value={this.state.itemName}
+          />
+
+      {  this.state.showFlatlist ?
+
+        (  <FlatList
+        data={this.state.dataSource}
+        renderItem={this.renderItem}
+        enableEmptySections={true}
+        style={{ marginTop: 10 }}
+        keyExtractor={(item, index) => index.toString()}
+      /> )
+      :(
+        <View style={{alignItems:'center'}}>
+        <TextInput
+          style ={[styles.formTextInput,{height:300}]}
+          multiline
+          numberOfLines ={8}
+          placeholder={"Why do you need the item"}
+          onChangeText ={(text)=>{
+              this.setState({
+                  reasonToRequest:text
+              })
+          }}
+          value ={this.state.reasonToRequest}
+        />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={()=>{ 
+              this.addRequest(this.state.itemName,this.state.reasonToRequest);
+          }}
+          >
+          <Text>Request</Text>
+        </TouchableOpacity>
+        </View>
+      )
+    }
+        </View>
+    )
+  }
+}
 }
 
 const styles = StyleSheet.create({
-    keyBoardStyle : {
-        // flex:1,
-        alignItems:'center',
+  keyBoardStyle : {
+    flex:1,
+    alignItems:'center',
+    justifyContent:'center'
+  },
+  formTextInput:{
+    width:"75%",
+    height:35,
+    alignSelf:'center',
+    borderColor:'#ffab91',
+    borderRadius:10,
+    borderWidth:1,
+    marginTop:20,
+    padding:10,
+  },
+  button:{
+    width:"75%",
+    height:50,
+    justifyContent:'center',
+    alignItems:'center',
+    borderRadius:10,
+    backgroundColor:"#ff5722",
+    },
+    view: {
+        borderColor:"orange",
+        borderWidth:2,
         justifyContent:'center',
-        backgroundColor: "lightblue"
-      },
-      inputBox:{
-        width:"75%",
-        height:"10%",
-        alignSelf:'center',
-        borderColor:'grey',
-        borderRadius:10,
-        borderWidth: 3,
-        marginTop:20,
-        textAlign: "center",
-        backgroundColor: "white",
-        color: "blue",
-        fontWeight: "bold",
-        fontSize: 19,
-        marginBottom: 20,
-      },
-      button:{
-        width:"75%",
-        height:50,
-        justifyContent:'center',
         alignItems:'center',
-        marginBottom: 200,
-        borderRadius: 15,
-        backgroundColor:"darkblue",
-        marginTop:20
-        },
-})
+        padding:10,
+        margin:10
+    }
+  }
+)

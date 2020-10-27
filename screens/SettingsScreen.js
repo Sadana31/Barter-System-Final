@@ -9,6 +9,7 @@ import {
   Alert} from 'react-native';
 import db from '../config';
 import firebase from 'firebase';
+import {RFValue} from 'react-native-responsive-fontsize';
 import MyHeader from '../components/MyHeader'
 
 export default class SettingsScreen extends React.Component {
@@ -192,7 +193,7 @@ export default class SettingsScreen extends React.Component {
     },
     header: {
         fontWeight:"bold",
-        fontSize: 17,
+        fontSize: RFValue(17),
         textAlign: "center",
         marginTop: 30,
         color: "navy"

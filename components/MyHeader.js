@@ -13,9 +13,9 @@ export default class MyHeader extends React.Component{
     }
 
     getNumberOfUnreadNotifications=()=>{
-        db.collection('all_notifications')
-        .where('notification_status','==','unread')
-        .where('targeted_user_id','==',firebase.auth().currentUser.email)
+        db.collection('allNotifications')
+        .where('notificationStatus','==','unread')
+        .where('receiverID','==',firebase.auth().currentUser.email)
         .onSnapshot((snapshot)=>{
           var unreadNotifications = snapshot.docs.map(doc=>doc.data());
           this.setState({

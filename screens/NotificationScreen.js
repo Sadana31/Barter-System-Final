@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, View, FlatList,Text } from 'react-native';
 import { ListItem, Icon } from 'react-native-elements';
 import firebase from 'firebase';
+import {RFValue} from 'react-native-responsive-fontsize';
 import MyHeader from '../components/MyHeader';
 import SwipeableFlatList from '../components/SwipeableFlatList';
 import db from '../config';
@@ -19,14 +20,14 @@ export default class NotificationScreen extends Component{
   }
 
   getNotifications=()=>{
-    this.requestRef = db.collection("all_notifications")
-    .where("notification_status", "==", "unread")
-    .where("targeted_user_id",'==',this.state.userId)
+    this.requestRef = db.collection("allNotifications")
+    .where("notificationStatus", "==", "unread")
+    .where("receiverID",'==',this.state.userId)
     .onSnapshot((snapshot)=>{
       var allNotifications =  []
       snapshot.docs.map((doc) =>{
         var notification = doc.data()
-        notification["doc_id"] = doc.id
+        notification["docID"] = doc.id
         allNotifications.push(notification)
       });
       this.setState({
@@ -49,8 +50,8 @@ export default class NotificationScreen extends Component{
       return (
         <ListItem
           key={index}
-          leftElement={<Icon name="book" type="font-awesome" color ='#696969'/>}
-          title={item.book_name}
+          leftElement={<Icon name="item" type="font-awesome" color ='#696969'/>}
+          title={item.itemName}
           titleStyle={{ color: 'black', fontWeight: 'bold' }}
           subtitle={item.message}
           bottomDivider

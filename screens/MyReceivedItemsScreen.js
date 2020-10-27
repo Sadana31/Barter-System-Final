@@ -2,31 +2,33 @@ import React, { Component } from 'react';
 import { View, StyleSheet, Text, FlatList,TouchableOpacity } from 'react-native';
 import { ListItem } from 'react-native-elements'
 import firebase from 'firebase';
-import {RFValue} from 'react-native-responsive-fontsize';
 import db from '../config'
 import MyHeader from '../components/MyHeader';
 
-export default class DonateScreen extends Component{
+export default class MyReceivedItemsScreen extends Component{
   constructor(){
     super()
     this.state = {
-      requestedItemsList : []
+      userID  : firebase.auth().currentUser.email,
+      receivedItemsList : []
     }
   this.requestRef= null
   }
 
-  getRequestedItemList =()=>{
+  getreceivedItemsList =()=>{
     this.requestRef = db.collection("requestedItems")
+    .where('userID','==',this.state.userID)
+    .where("itemStatus", '==','received')
     .onSnapshot((snapshot)=>{
-      var requestedItemList = snapshot.docs.map(document => document.data());
+      var receivedItemsList = snapshot.docs.map((doc) => doc.data())
       this.setState({
-        requestedItemsList : requestedItemList
+        receivedItemsList : receivedItemsList
       });
     })
   }
 
   componentDidMount(){
-    this.getRequestedItemList()
+    this.getreceivedItemsList()
   }
 
   componentWillUnmount(){
@@ -36,21 +38,13 @@ export default class DonateScreen extends Component{
   keyExtractor = (item, index) => index.toString()
 
   renderItem = ( {item, i} ) =>{
+    console.log(item.item_name);
     return (
       <ListItem
         key={i}
         title={item.itemName}
-        subtitle={item.reasonToRequest}
-        titleStyle={{ color: 'black', fontWeight: 'bold', fontSize: RFValue(20) }}
-        subtitleStyle={{ color: 'black', fontSize: RFValue(15) }}
-        rightElement={
-            <TouchableOpacity style={styles.button}
-            onPress={()=>{
-              this.props.navigation.navigate("ReceiverDetails",{"details":item});
-            }}>
-              <Text style={{color:'#ffff', fontWeight: "bold"}}>VIEW  </Text>
-            </TouchableOpacity>
-          }
+        subtitle={item.itemStatus}
+        titleStyle={{ color: 'black', fontWeight: 'bold' }}
         bottomDivider
       />
     )
@@ -59,19 +53,19 @@ export default class DonateScreen extends Component{
   render(){
     return(
       <View style={{flex:1}}>
-        <MyHeader title="DONATE AN ITEM" navigation ={this.props.navigation}/>
-        <View style={{flex:1, backgroundColor: "lightblue"}}>
+        <MyHeader title="Received items" navigation ={this.props.navigation}/>
+        <View style={{flex:1}}>
           {
-            this.state.requestedItemsList.length === 0
+            this.state.receivedItemsList.length === 0
             ?(
               <View style={styles.subContainer}>
-                <Text style={{ fontSize: RFValue(20)}}>List Of All Requested Items</Text>
+                <Text style={{ fontSize: 20}}>You haven't received any items yet</Text>
               </View>
             )
             :(
               <FlatList
                 keyExtractor={this.keyExtractor}
-                data={this.state.requestedItemsList}
+                data={this.state.receivedItemsList}
                 renderItem={this.renderItem}
               />
             )
@@ -85,17 +79,16 @@ export default class DonateScreen extends Component{
 const styles = StyleSheet.create({
   subContainer:{
     flex:1,
-    fontSize: RFValue(20),
+    fontSize: 20,
     justifyContent:'center',
-    alignItems:'center',
-    backgroundColor: "lightblue"
+    alignItems:'center'
   },
   button:{
     width:100,
     height:30,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:"blue",
+    backgroundColor:"#ff5722",
     shadowColor: "#000",
     shadowOffset: {
        width: 0,

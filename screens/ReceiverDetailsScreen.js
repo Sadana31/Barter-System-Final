@@ -4,16 +4,17 @@ TouchableOpacity,KeyboardAvoidingView, Alert} from 'react-native';
 import db from '../config';
 import {Header,Icon,Card} from 'react-native-elements';
 import firebase from 'firebase';
+import {RFValue} from 'react-native-responsive-fontsize';
 
 export default class ReceiverDetailsScreen extends React.Component {
     constructor(props){
         super(props);
         this.state = {
             userId: firebase.auth().currentUser.email,
-            receiverId: this.props.navigation.getParam("details")["user_id"],
-            requestId: this.props.navigation.getParam("details")["request_id"],
-            itemName: this.props.navigation.getParam("details")["item_name"],
-            reason_for_requesting: this.props.navigation.getParam("details")["reason_to_request"],
+            receiverId: this.props.navigation.getParam("details")["userID"],
+            requestId: this.props.navigation.getParam("details")["requestID"],
+            itemName: this.props.navigation.getParam("details")["itemName"],
+            reasonForRequesting: this.props.navigation.getParam("details")["reasonToRequest"],
             receiverName: "",
             receiverContact: "",
             receiverAddress: "",
@@ -44,7 +45,7 @@ export default class ReceiverDetailsScreen extends React.Component {
                 })
             })
         })
-        db.collection("requested_items").where("request_id","==",this.state.requestId).get()
+        db.collection("requestedItems").where("requestID","==",this.state.requestId).get()
         .then(snapshot=>{
             snapshot.forEach(doc=>{
                 this.setState({receiverRequestDocId: doc.id});
@@ -58,24 +59,24 @@ export default class ReceiverDetailsScreen extends React.Component {
     }
 
     updateItemStatus=()=>{
-        db.collection("all_donations").add({
-            item_name: this.state.itemName,
-            request_id: this.state.requestId,
-            requested_by: this.state.receiverName,
-            donor_id: this.state.userId,
-            request_status: "Donor Interested"
+        db.collection("allBarters").add({
+            itemName: this.state.itemName,
+            requestID: this.state.requestId,
+            requestedBy: this.state.receiverName,
+            donorID: this.state.userId,
+            requestStatus: "Donor Interested"
         })
     }
 
     addNotification=()=>{
         var message = this.state.userName + " has shown interest in donating the item"
-        db.collection("all_notifications").add({
-          "targeted_user_id"    : this.state.receiverId,
-          "donor_id"            : this.state.userId,
-          "request_id"          : this.state.requestId,
-          "item_name"           : this.state.itemName,
+        db.collection("allNotifications").add({
+          "receiverID"    : this.state.receiverId,
+          "donorID"            : this.state.userId,
+          "requestID"          : this.state.requestId,
+          "itemName"           : this.state.itemName,
           "date"                : firebase.firestore.FieldValue.serverTimestamp(),
-          "notification_status" : "unread",
+          "notificationStatus" : "unread",
           "message"             : message
         })
       }
@@ -89,7 +90,7 @@ export default class ReceiverDetailsScreen extends React.Component {
                                     color="#696969" 
                                     onPress={()=>this.props.navigation.goBack()}/>}
                     centerComponent={{text: "DONATE ITEMS",
-                                    style: {color: "white", fontSize: 20, fontWeight: "bold"}}}
+                                    style: {color: "white", fontSize: RFValue(20), fontWeight: "bold"}}}
                     backgroundColor = "darkblue"/>
                 </View>
 
@@ -99,21 +100,21 @@ export default class ReceiverDetailsScreen extends React.Component {
                                 borderWidth: 3,
                                 margin: 10,
                                 borderRadius: 10}}>
-                    <Text style={{fontWeight: "bold", fontSize: 18, textAlign: "center"}}>
+                    <Text style={{fontWeight: "bold", fontSize: RFValue(18), textAlign: "center"}}>
                         ITEM DESCRIPTION
                     </Text>
                     <Card>
                         <Text style={{fontWeight: "bold"}}>NAME: {this.state.itemName}</Text>
                     </Card>
                     <Card>
-                        <Text style={{fontWeight: "bold"}}>REASON: {this.state.reason_for_requesting}</Text>
+                        <Text style={{fontWeight: "bold"}}>REASON: {this.state.reasonForRequesting}</Text>
                     </Card>
                 </View>
 
                 <View 
                 style={styles.box}>
                     <Text 
-                    style={{fontWeight: "bold", fontSize: 18, textAlign: "center"}}>
+                    style={{fontWeight: "bold", fontSize: RFValue(18), textAlign: "center"}}>
                         RECEIVER INFORMATION
                     </Text>
                     <Card>
